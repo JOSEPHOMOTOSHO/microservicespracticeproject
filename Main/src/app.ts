@@ -1,11 +1,12 @@
 require('dotenv').config()
 import * as express from "express";
-// import { Request, Response } from "express";
+import { Request, Response } from "express";
 import * as cors from "cors";
 import { createConnection } from "typeorm";
 import { Product } from "./entity/product";
 import * as morgan from "morgan";
 import * as amqp from "amqplib/callback_api"
+import axios from "axios"
 
 createConnection()
   .then((db) => {
@@ -43,6 +44,38 @@ createConnection()
           await productRepository.save(product)
           console.log("product created")
         },{noAck:true})
+
+        channel.consume("product_updated", async (message) => {
+          const eventProduct:Product = JSON.parse(message!.content.toString())
+          const product = await productRepository.findOne({admin_id: parseInt(eventProduct.id)})
+          productRepository.merge(product as Product, {
+            title:eventProduct.title,
+            image:eventProduct.image,
+            likes:eventProduct.likes
+          })
+          await productRepository.save(product as Product)
+          console.log("product updated")
+        },{noAck:true})
+
+        channel.consume("product_deleted", async (message) => {
+          const admin_id = parseInt(message!.content.toString())
+          await productRepository.deleteOne({admin_id})
+          console.log("product deleted")
+        },{noAck:true})
+
+        app.get("/api/products", async(req:Request, res:Response)=> {
+          const products = await productRepository.find()
+          return res.send(products)
+        })
+
+        app.post("/api/products/:id/like", async(req:Request, res:Response)=>{
+          console.log("maee")
+          const product = await productRepository.findOne(req.params.id)
+          await axios.post(`http://localhost:8000/api/products/${product?.admin_id}/like`,{})
+          product!.likes++
+          await productRepository.save(product as Product)
+          return res.send(product)
+        })
     
         console.log("Main app listening to port:8001");
     
