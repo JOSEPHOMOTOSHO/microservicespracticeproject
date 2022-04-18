@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = require("tslib");
+require("dotenv/config");
 var express = require("express");
 var cors = require("cors");
 var typeorm_1 = require("typeorm");
@@ -10,7 +11,7 @@ var amqp = require("amqplib/callback_api");
 (0, typeorm_1.createConnection)()
     .then(function (db) {
     var productRepository = db.getRepository(product_1.Product);
-    amqp.connect("amqps://hcmesmrl:OLXTRqJhp_o4_FMaSfc_NhHyvXZ4gHa5@cow.rmq2.cloudamqp.com/hcmesmrl", function (error0, connection) {
+    amqp.connect(process.env.AMQP_URI, function (error0, connection) {
         if (error0) {
             throw error0;
         }
@@ -46,6 +47,7 @@ var amqp = require("amqplib/callback_api");
                             return [4 /*yield*/, productRepository.save(product)];
                         case 2:
                             result = _a.sent();
+                            channel.sendToQueue("product_created", Buffer.from(JSON.stringify(result)));
                             return [2 /*return*/, res.send(result)];
                     }
                 });
@@ -72,6 +74,7 @@ var amqp = require("amqplib/callback_api");
                             return [4 /*yield*/, productRepository.save(product)];
                         case 2:
                             result = _a.sent();
+                            channel.sendToQueue("product_updated", Buffer.from(JSON.stringify(result)));
                             return [2 /*return*/, res.send(result)];
                     }
                 });
@@ -83,6 +86,7 @@ var amqp = require("amqplib/callback_api");
                         case 0: return [4 /*yield*/, productRepository.delete(req.params.id)];
                         case 1:
                             product = _a.sent();
+                            channel.sendToQueue("product_deleted", Buffer.from(JSON.stringify(req.params.id)));
                             return [2 /*return*/, res.send(product)];
                     }
                 });
@@ -104,6 +108,10 @@ var amqp = require("amqplib/callback_api");
             }); });
             console.log("Admin app listening to port:8000");
             app.listen(8000);
+            process.on("beforeExit", function () {
+                console.log("Closing connection");
+                connection.close();
+            });
         });
     });
 })

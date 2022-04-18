@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import * as express from "express";
 import { Request, Response } from "express";
 import * as cors from "cors";
@@ -10,7 +11,7 @@ createConnection()
   .then((db) => {
     const productRepository = db.getRepository(Product);
 
-    amqp.connect("amqps://hcmesmrl:OLXTRqJhp_o4_FMaSfc_NhHyvXZ4gHa5@cow.rmq2.cloudamqp.com/hcmesmrl",(error0,connection)=>{
+    amqp.connect(process.env.AMQP_URI as string,(error0,connection)=>{
       if(error0){
         throw error0
       }
@@ -38,6 +39,7 @@ createConnection()
         app.post("/api/products", async (req: Request, res: Response) => {
           const product = await productRepository.create(req.body);
           const result = await productRepository.save(product);
+          channel.sendToQueue("product_created",Buffer.from(JSON.stringify(result)))
           return res.send(result);
         });
     
@@ -50,11 +52,13 @@ createConnection()
           const product = await productRepository.findOne(req.params.id);
           productRepository.merge(product as Product, req.body);
           const result = await productRepository.save(product as Product);
+          channel.sendToQueue("product_updated",Buffer.from(JSON.stringify(result)))
           return res.send(result);
         });
     
         app.delete("/api/products/:id", async (req: Request, res: Response) => {
           const product = await productRepository.delete(req.params.id);
+          channel.sendToQueue("product_deleted",Buffer.from(JSON.stringify(req.params.id)))
           return res.send(product);
         });
     
@@ -68,6 +72,10 @@ createConnection()
         console.log("Admin app listening to port:8000");
     
         app.listen(8000);
+        process.on("beforeExit", ()=>{
+          console.log("Closing connection")
+          connection.close()
+        })
 
       })
     })
