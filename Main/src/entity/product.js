@@ -7,9 +7,13 @@ var Product = /** @class */ (function () {
     function Product() {
     }
     tslib_1.__decorate([
-        (0, typeorm_1.PrimaryGeneratedColumn)(),
-        tslib_1.__metadata("design:type", Number)
+        (0, typeorm_1.ObjectIdColumn)(),
+        tslib_1.__metadata("design:type", String)
     ], Product.prototype, "id", void 0);
+    tslib_1.__decorate([
+        (0, typeorm_1.Column)({ unique: true }),
+        tslib_1.__metadata("design:type", Number)
+    ], Product.prototype, "admin_id", void 0);
     tslib_1.__decorate([
         (0, typeorm_1.Column)(),
         tslib_1.__metadata("design:type", String)

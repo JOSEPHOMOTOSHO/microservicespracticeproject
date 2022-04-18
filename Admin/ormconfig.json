@@ -6,6 +6,5 @@
     "password": "12345",
     "database": "adminMicroservice",
     "entities": ["src/entity/*.js"],
-    "logging": false,
-    "synchronize": true
+    "logging": false
   }

@@ -1,5 +1,5 @@
 {
-  "name": "Admin",
+  "name": "Main",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -14,7 +14,7 @@
     "amqplib": "^0.8.0",
     "cors": "^2.8.5",
     "express": "^4.17.3",
-    "mysql": "^2.18.1",
+    "mongodb": "^4.4.1",
     "reflect-metadata": "^0.1.13",
     "typeorm": "^0.2.45"
   },
