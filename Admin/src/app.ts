@@ -58,7 +58,7 @@ createConnection()
     
         app.delete("/api/products/:id", async (req: Request, res: Response) => {
           const product = await productRepository.delete(req.params.id);
-          channel.sendToQueue("product_deleted",Buffer.from(JSON.stringify(req.params.id)))
+          channel.sendToQueue("product_deleted",Buffer.from(req.params.id))
           return res.send(product);
         });
     

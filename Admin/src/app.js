@@ -86,7 +86,7 @@ var amqp = require("amqplib/callback_api");
                         case 0: return [4 /*yield*/, productRepository.delete(req.params.id)];
                         case 1:
                             product = _a.sent();
-                            channel.sendToQueue("product_deleted", Buffer.from(JSON.stringify(req.params.id)));
+                            channel.sendToQueue("product_deleted", Buffer.from(req.params.id));
                             return [2 /*return*/, res.send(product)];
                     }
                 });
